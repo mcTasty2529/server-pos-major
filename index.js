@@ -23,25 +23,45 @@ app.use(
 
 app.get("/getsentence", async (req, res) => {
   try {
-    const sentences = await Sentences.find().limit(100);
+    const page = parseInt(req.query.page) || 1;
+    const limit = 100;
+
+    const sentences = await Sentences.find()
+      .skip((page - 1) * limit)
+      .limit(limit);
+
     if (!sentences) {
-      res.status(400).json({ error: "Something went wrong." });
+      return res.status(400).json({ error: "No sentences found." });
     }
+
     res.status(200).send(sentences);
   } catch (err) {
     console.log(err);
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 });
 
 app.get("/getTaggedSentences", async (req, res) => {
   try {
-    const taggedWords = await TaggedSentences.find();
+    const page = parseInt(req.query.page) || 1;
+    const limit = 100;
+
+    const taggedWords = await TaggedSentences.find()
+      .skip((page - 1) * limit)
+      .limit(limit);
+
     if (!taggedWords) {
       return res.status(400).json({ error: "Not found." });
     }
+
     res.status(200).send(taggedWords);
   } catch (e) {
     console.log(e);
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: e.message });
   }
 });
 
@@ -61,14 +81,10 @@ app.post("/taggedsentences", async (req, res) => {
 
     const setStatus = await Sentences.findOneAndUpdate(
       { index: sentenceId },
-      {
-        status: sentenceStatus,
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
+      { status: sentenceStatus },
+      { new: true, runValidators: true }
     );
+
     if (!setStatus) {
       return res.status(400).send("Sentence not found.");
     }
