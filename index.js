@@ -24,7 +24,7 @@ app.use(
 app.get("/getsentence", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 100;
+    const limit = 10;
 
     const sentences = await Sentences.find()
       .skip((page - 1) * limit)
